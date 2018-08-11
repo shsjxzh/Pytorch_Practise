@@ -102,6 +102,6 @@ if __name__ == '__main__':
                     print(labels.size(0))
                     k += 1
                 correct += (labels == predicted).sum().item()
-            print('Accuracy: %.4f %%' % correct / total * 100)
+            print('Accuracy: %.4f %%' % (correct / total * 100))
 
     print('Finished Training')
