@@ -14,7 +14,7 @@ if __name__ == '__main__':
     SHOW_STEP = 100                 # show the result after how many steps
 
     # transform: to tensor format and do batch normalization
-    my_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean = [0.5, 0.5, 0.5], std = [0.5, 0.5, 0.5])])
+    my_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
     train_data = torchvision.datasets.MNIST(
         root='./mnist',             # the location to save
@@ -67,6 +67,8 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(cnn.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
 
+    k = 1 # a number for test
+
     for epoch in range(EPOCH):
 
         running_loss = 0.0
@@ -88,11 +90,18 @@ if __name__ == '__main__':
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, running_loss / SHOW_STEP))
                 running_loss = 0.0
 
-                with torch.no_grad():
-                    for check_data in test_loader:
-                        images, labels = data
-                        check_output = cnn(images)
-                        _, predicted = torch.max(check_output.data, 1)
-
+        with torch.no_grad():
+            total = 0
+            correct = 0
+            for check_data in test_loader:
+                images, labels = data
+                check_output = cnn(images)
+                _, predicted = torch.max(check_output.data, 1)
+                total += labels.size(0)
+                if k <= 4:
+                    print(labels.size(0))
+                    k += 1
+                correct += (labels == predicted).sum().item()
+            print('Accuracy: %.4f %%' % correct / total * 100)
 
     print('Finished Training')
