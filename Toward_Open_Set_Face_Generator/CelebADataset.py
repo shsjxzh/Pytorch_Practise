@@ -15,13 +15,17 @@ def pil_loader(path):
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('RGB')
-'''
+
 def make_dataset(dir, labels):
     images = []
     for fname, label in labels:
         path = os.path.join(dir, fname)
-        item = (path, )
-'''
+        label = torch.from_numpy(np.array([label - 1])).type(torch.LongTensor)
+        item = (path, label)
+        images.append(item)
+
+    return images
+
 
 class CelebADataset(Dataset):
     def __init__(self, csv_file, root_dir, transform=None):
@@ -32,22 +36,28 @@ class CelebADataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        self.labels = pd.read_table(csv_file, header=None, delim_whitespace=True)
+        # self.labels = pd.read_table(csv_file, header=None, delim_whitespace=True)
+        labels = pd.read_table(csv_file, header=None, delim_whitespace=True)
+        self.samples = make_dataset(root_dir, labels.values)
         self.root_dir = root_dir
         self.transform = transform
 
     def __len__(self):
-        return len(self.labels)
+        # return len(self.labels)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.labels.iloc[idx, 0])
-        image = pil_loader(img_name)
+        # img_name = os.path.join(self.root_dir, self.labels.iloc[idx, 0])
+        # image = pil_loader(img_name)
         # image = io.imread(img_name)
+        path, target = self.samples[idx]
+        sample = pil_loader(path)
+        if self.transform is not None:
+            # image = self.transform(sample)
+            sample = self.transform(sample)
 
-        if self.transform:
-            image = self.transform(image)
-
-        return image, torch.from_numpy(np.array([self.labels.iloc[idx, 1] - 1]))
+        # return image, torch.from_numpy(np.array([self.labels.iloc[idx, 1] - 1]))
+        return sample, target
 
 
 '''
