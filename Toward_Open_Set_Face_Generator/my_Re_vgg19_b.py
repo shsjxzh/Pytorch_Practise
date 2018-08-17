@@ -30,4 +30,4 @@ def my_Re_vgg19_b(**kwargs):
     model = my_Re_vgg(make_layers(cfg), **kwargs)
     return model
 
-print(my_Re_vgg19_b())
+# print(my_Re_vgg19_b())
