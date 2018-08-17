@@ -9,6 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from PIL import Image
 
+ImageSize = 128
 
 def pil_loader(path):
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
@@ -60,12 +61,14 @@ class CelebADataset(Dataset):
         return sample, target
 
 
-'''
-# The test of CelebADataset
 
+# The test of CelebADataset
+'''
 face_data = CelebADataset(csv_file='celeba_label/identity_CelebA.txt',
                           root_dir='img_align_celeba_small',
                           transform=transforms.Compose([
+                              transforms.Resize(ImageSize),
+                              transforms.CenterCrop(ImageSize),
                               transforms.ToTensor(),
                               transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                    std=[0.229, 0.224, 0.225])
@@ -87,7 +90,5 @@ for i in range(len(face_data)):
 
     if i == 3:
         plt.show()
-        break
-    if i == 3:
         break
 '''
