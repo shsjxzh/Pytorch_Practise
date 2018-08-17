@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
 
 # Hyper Parameters
-EPOCH = 6                       # the training times
+EPOCH = 500                     # the training times
 BATCH_SIZE = 64                 # not use all data to train
-LR = 0.001
-DOWNLOAD_MNIST = False          # if have already download, then turn it to 'False'
+LR = 0.01
 SHOW_STEP = 100                 # show the result after how many steps
 
 # Data Describe
@@ -21,9 +20,6 @@ def train(model, device, train_loader, optimizer, criterion, epoch):
     running_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
-        if batch_idx == 1:
-            print(target)
-
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
@@ -73,8 +69,12 @@ def main():
             adjust_learning_rate(optimizer, epoch)
         train(model, device, train_loader, optimizer, loss_func, epoch)
 
-    print('Finished Training')
+        if epoch % 30 == 29:
+            torch.save(model.cpu().state_dict(), 'c_params.pkl')
 
+    print('Finished Training')
+    torch.save(model.cpu().state_dict(), 'c_params.pkl')
+    # save the model
 
 if __name__ == '__main__':
     main()
