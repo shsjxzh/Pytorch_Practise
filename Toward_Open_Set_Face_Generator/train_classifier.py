@@ -4,6 +4,7 @@ import torch.utils.data as Data
 import torchvision # this is the database of torch
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
+import argparse
 
 # Hyper Parameters
 EPOCH = 50                     # the training times
@@ -40,6 +41,10 @@ def adjust_learning_rate(optimizer, epoch):
         param_group['lr'] = lr
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c_epoch', type=int, default=0)
+    args = parser.parse_args()
+
     from CelebADataset import CelebADataset
 
     mytransform = transforms.Compose([
@@ -60,13 +65,18 @@ def main():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     
-    model = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool)
+    if args.c_epoch > 0:
+        pretrain_sign = True
+    else:
+        pretrain_sign = False
+
+    model = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=pretrain_sign)
     model = nn.DataParallel(model, device_ids=[0, 1, 2]).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
 
-    for epoch in range(EPOCH):
+    for epoch in range(args.c_epoch, EPOCH):
         # if epoch == 0:
             # print('I am here')
         if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
@@ -74,10 +84,10 @@ def main():
         train(model, device, train_loader, optimizer, loss_func, epoch)
 
         if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
-            torch.save(model.cpu().state_dict(), 'c_params.pkl')
+            torch.save(model.state_dict(), 'c_params.pkl')
 
     print('Finished Training')
-    torch.save(model.cpu().state_dict(), 'c_params.pkl')
+    torch.save(model.state_dict(), 'c_params.pkl')
     # save the model
 
 if __name__ == '__main__':

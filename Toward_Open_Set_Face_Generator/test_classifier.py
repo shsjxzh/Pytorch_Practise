@@ -14,6 +14,7 @@ SHOW_STEP = 100                 # show the result after how many steps
 # Data Describe
 num_people = 10177
 pic_after_MaxPool = 512 * 4 * 4
+ImageSize = 128
 
 def main():
     # load the data
