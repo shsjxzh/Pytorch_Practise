@@ -21,7 +21,7 @@ def make_dataset(dir, labels):
     images = []
     for fname, label in labels:
         path = os.path.join(dir, fname)
-        label = torch.from_numpy(np.array([label - 1])).type(torch.LongTensor)
+        label = torch.from_numpy(np.array([label - 1])).type(torch.LongTensor).squeeze()
         item = (path, label)
         images.append(item)
 
