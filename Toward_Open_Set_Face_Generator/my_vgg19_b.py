@@ -15,7 +15,7 @@ class my_vgg(nn.Module):
             nn.Dropout(),
             nn.Linear(hidden_node, num_classes)
         )
-        if init_weights:
+        if init:
             self._initialize_weights()
 
     def forward(self, x):

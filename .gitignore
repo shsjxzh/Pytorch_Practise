@@ -1,0 +1,10 @@
+.idea/
+.pytest_cache/
+.vscode/
+__pycache__/
+Toward_Open_Set_Face_Generator/img_align_celeba/
+Toward_Open_Set_Face_Generator/img_align_celeba_small/
+mnist/
+VGG_example/run.sh
+VGG_example/valprep.sh
+venv/
