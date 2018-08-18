@@ -61,4 +61,4 @@ def my_vgg19_b(pretrained=False, **kwargs):
         model.load_state_dict(torch.load('c_params.pkl',  map_location=lambda storage, loc: storage))
     return model
 
-print(my_vgg19_b())
+# print(my_vgg19_b())
