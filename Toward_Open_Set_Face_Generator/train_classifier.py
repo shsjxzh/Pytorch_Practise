@@ -71,6 +71,7 @@ def main():
         pretrain_sign = False
 
     model = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=pretrain_sign)
+    model.load_state_dict(torch.load('c_params.pkl'))
     model = nn.DataParallel(model, device_ids=[0, 1, 2]).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
