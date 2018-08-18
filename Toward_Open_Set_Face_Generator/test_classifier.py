@@ -39,7 +39,7 @@ def main():
     # load the model
     from my_vgg19_b import my_vgg19_b
     model = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=True)
-    model.load_state_dict(torch.load('c_params.pkl'))
+    # model.load_state_dict(torch.load('c_params.pkl'))
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
