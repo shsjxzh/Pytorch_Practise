@@ -57,7 +57,7 @@ def my_vgg19_b(pretrained=False, **kwargs):
         kwargs['init'] = False
     model = my_vgg(make_layers(cfg), **kwargs)
     if pretrained:
-        model.load_state_dict(torch.load('c_params.pkl'))
+        # model.load_state_dict(torch.load('c_params.pkl'))
     return model
 
 # print(my_vgg19_b())
