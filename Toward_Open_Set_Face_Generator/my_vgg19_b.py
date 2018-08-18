@@ -54,7 +54,7 @@ cfg = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 
 
 def my_vgg19_b(pretrained=False, **kwargs):
     if pretrained:
-        kwargs['init_weights'] = False
+        kwargs['init'] = False
     model = my_vgg(make_layers(cfg), **kwargs)
     if pretrained:
         model.load_state_dict(torch.load('c_params.pkl'))
