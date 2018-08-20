@@ -9,7 +9,7 @@ import argparse
 # Hyper Parameters
 EPOCH = 50                     # the training times
 BATCH_SIZE = 32                 # not use all data to train
-LR = 0.007
+LR = 0.0003
 SHOW_STEP = 100                 # show the result after how many steps
 CHANGE_EPOCH = 5
 
@@ -22,15 +22,12 @@ def train(model, device, train_loader, optimizer, criterion, epoch):
     model.train()
     running_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
+        data, target = data, target = data.to(torch.device("cuda:1")), target.to(torch.device("cuda:1"))
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
-
-        if batch_idx == 8:
-            torch.save(model.state_dict(), 'c_params.pkl')
 
         running_loss += loss.item()
         if batch_idx % SHOW_STEP == SHOW_STEP - 1:
@@ -75,7 +72,7 @@ def main():
 
     model = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=pretrain_sign)
     # model.load_state_dict(torch.load('c_params.pkl'))
-    model = nn.DataParallel(model, device_ids=[0, 1, 2]).to(device)
+    model = nn.DataParallel(model, device_ids=[1, 2]).to(torch.device("cuda:1"))
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
@@ -86,9 +83,9 @@ def main():
         if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
             adjust_learning_rate(optimizer, epoch)
         train(model, device, train_loader, optimizer, loss_func, epoch)
+        torch.save(model.state_dict(), 'c_params.pkl')
 
     print('Finished Training')
-    torch.save(model.state_dict(), 'c_params.pkl')
     # save the model
 
 if __name__ == '__main__':

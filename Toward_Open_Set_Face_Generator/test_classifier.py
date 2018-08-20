@@ -8,7 +8,7 @@ from torchvision import datasets, transforms
 # Hyper Parameters
 EPOCH = 500                     # the training times
 BATCH_SIZE = 32                # not use all data to train
-LR = 0.01
+LR = 0.001
 SHOW_STEP = 100                 # show the result after how many steps
 
 # Data Describe
@@ -29,7 +29,7 @@ def main():
     face_data = CelebADataset(csv_file='celeba_label/identity_CelebA.txt', 
                               root_dir='img_align_celeba',
                               transform=mytransform)
-    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True)#, num_workers=2)
 
     dataiter = iter(train_loader)
     images, labels = dataiter.next()
@@ -49,9 +49,12 @@ def main():
     model.eval()
     with torch.no_grad():
         images = images.to(device)
-        outputs = model(images).cpu()
+        # print(images)
+        outputs , _ = model(images)
+        print(outputs)
         _, predicted = torch.max(outputs, 1)
-        print('Predicted: ', ' '.join('%d' % predicted[i] for i in range(BATCH_SIZE)))
+        print(predicted)
+        # print('Predicted: ', ' '.join('%d' % predicted[i] for i in range(BATCH_SIZE)))
 
 
 if __name__ == '__main__':

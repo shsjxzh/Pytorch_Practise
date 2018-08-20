@@ -24,8 +24,9 @@ class my_vgg(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = x.view(x.size(0), -1)
-        x = self.classifier(x)
-        return x
+        # print(x.size())
+        output = self.classifier(x)
+        return output, x
     
     def _initialize_weights(self):
         for m in self.modules():
@@ -58,7 +59,12 @@ def my_vgg19_b(pretrained=False, **kwargs):
         kwargs['init'] = False
     model = my_vgg(**kwargs)
     if pretrained:
-        model.load_state_dict(torch.load('c_params.pkl',  map_location=lambda storage, loc: storage))
+        pretrained_dict = torch.load('c_params.pkl',  map_location=lambda storage, loc: storage)
+        model_dict=model.state_dict()
+        
+        pretrained_dict = {k.replace('module.','') : v for k, v in pretrained_dict.items() if k.replace('module.','') in model_dict}
+        model.load_state_dict(pretrained_dict)
+        # model.load_state_dict(torch.load('c_params.pkl',  map_location=lambda storage, loc: storage))
     return model
 
 # print(my_vgg19_b())
