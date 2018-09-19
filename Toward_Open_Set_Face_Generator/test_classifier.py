@@ -51,10 +51,10 @@ def main():
         images = images.to(device)
         # print(images)
         outputs , _ = model(images)
-        print(outputs)
+        # print(outputs)
         _, predicted = torch.max(outputs, 1)
-        print(predicted)
-        # print('Predicted: ', ' '.join('%d' % predicted[i] for i in range(BATCH_SIZE)))
+        # print(predicted)
+        print('Predicted: ', ' '.join('%d' % predicted[i] for i in range(BATCH_SIZE)))
 
 
 if __name__ == '__main__':
