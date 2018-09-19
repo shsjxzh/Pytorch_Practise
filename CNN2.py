@@ -4,9 +4,10 @@ import torch.utils.data as Data
 import torchvision # this is the database of torch
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
+import argparse
 
 # Hyper Parameters
-EPOCH = 6                       # the training times
+EPOCH = 3                       # the training times
 BATCH_SIZE = 64                 # not use all data to train
 LR = 0.001
 DOWNLOAD_MNIST = False          # if have already download, then turn it to 'False'
@@ -72,6 +73,10 @@ my_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(m
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', type=int, default=0)
+    args = parser.parse_args()
+
     train_data = torchvision.datasets.MNIST(
         root='./mnist',             # the location to save
         train=True,
@@ -98,8 +103,14 @@ def main():
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
-    model = CNN().to(device)
 
+    if args.c == 0:
+        model = CNN().to(device)
+    else:
+        model = CNN()
+        model.load_state_dict(torch.load('params.pkl', map_location=lambda storage, loc: storage))
+        model = model.to(device)
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
 
@@ -107,8 +118,7 @@ def main():
         # model.load_state_dict(torch.load('params.pkl',  map_location=lambda storage, loc: storage))
         train(model, device, train_loader, optimizer, loss_func, epoch)
         evaluation(model, device, test_loader, loss_func)
-        torch.save(model.state_dict(), 'params.pkl')
-
+        # torch.save(model.state_dict(), 'c_params.pkl')
 
     print('Finished Training')
 

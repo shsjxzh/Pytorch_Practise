@@ -14,3 +14,5 @@ Toward_Open_Set_Face_Generator/celeba_label/README.txt
 Toward_Open_Set_Face_Generator/celeba_label/identity_CelebA.txt
 test.png
 gan-test.gif
+Face_identity_preserve/data/
+
