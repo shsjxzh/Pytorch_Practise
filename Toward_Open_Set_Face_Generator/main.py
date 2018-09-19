@@ -113,11 +113,17 @@ def main():
             LIC_loss = nn.CrossEntropyLoss(IC_output, identity)
 
             # LK loss
-            A_output = A(subject) 
+            A_output = A(subject)
             LKL_loss = nn.KLDivLoss(A_output, torch.normal(torch.zeros(pic_after_MaxPool), 1))
 
             input_vector = torch.cat((IC_sub, A_output), 1)
+            input_vector = input_vector.unsqueeze(2).unsqueeze(3)
+            
+            print(input_vector.size())
+            
             g_image = G(input_vector)
+            
+            print(g_image.size())
 
             # LGD loss
             fd_image = D(subject)             # D try to increase this

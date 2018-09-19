@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-
+'''
 data = pd.read_table('celeba_label/identity_CelebA.txt', header=None, delim_whitespace=True)
 
 print(data.head(10).values)
@@ -51,3 +51,21 @@ class CelebADataset(Dataset):
             sample = self.transform(sample)
         
         return sample
+
+'''
+a = torch.ones(3, 5)
+b = 2 * torch.ones(3, 5)
+c = torch.cat((a,b), 1)
+print(c.size())
+c = c.unsqueeze(2).unsqueeze(3)
+print(c.size())
+
+'''
+d = c.mean(dim=1, keepdim=True)
+print((d*d).sum(dim = 1))
+
+a = torch.ones(3, 3) * 2
+b = torch.ones(3, 3) * 4
+
+print(((a - b) ** 2).sum())
+'''
