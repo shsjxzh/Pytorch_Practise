@@ -39,7 +39,6 @@ def train(model, device, train_loader, optimizer, criterion, epoch):
     running_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
-
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
@@ -68,7 +67,7 @@ def evaluation(model, device, test_loader, criterion):
     print('Test set: Average loss: %.4f, Accuracy: %.4f %%' % (test_loss, 100. * correct / len(test_loader.dataset)))
 
 
-# transform: to tensor format and do batch normalization
+# transform: to tensor format and do normalization
 my_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
 
@@ -105,8 +104,11 @@ def main():
     loss_func = nn.CrossEntropyLoss()
 
     for epoch in range(EPOCH):
+        # model.load_state_dict(torch.load('params.pkl',  map_location=lambda storage, loc: storage))
         train(model, device, train_loader, optimizer, loss_func, epoch)
         evaluation(model, device, test_loader, loss_func)
+        torch.save(model.state_dict(), 'params.pkl')
+
 
     print('Finished Training')
 
