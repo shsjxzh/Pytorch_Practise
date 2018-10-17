@@ -166,11 +166,11 @@ def main():
             input_vector = torch.cat((IC_sub, A_output), 1)
             input_vector = input_vector.unsqueeze(2).unsqueeze(3)
             
-            print(input_vector.size())
+            # print(input_vector.size())
             
             g_image = G(input_vector)
             
-            print(g_image.size())
+            # print(g_image.size())
 
             # LGD loss
             prob_sub, fd_image = D(subject)             # D try to increase this
