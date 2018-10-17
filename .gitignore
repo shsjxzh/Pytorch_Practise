@@ -16,3 +16,5 @@ test.png
 gan-test.gif
 Face_identity_preserve/data/
 
+tmp.py
+params.pkl
