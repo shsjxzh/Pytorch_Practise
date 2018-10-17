@@ -187,18 +187,18 @@ def main():
             LGC_loss = 0.5 * ((IC_atr - IC_sub)**2).sum()
 
             # LD loss
-            real_label = 1
-            fake_label = 0
+            # real_label = 1
+            # fake_label = 0
 
-            label = torch.full((BATCH_SIZE,), real_label, device=device)
-            L_errD_real = nn.BCELoss(fd_image, label)
+            # label = torch.full((BATCH_SIZE,), real_label, device=device)
+            # L_errD_real = nn.BCELoss(fd_image, label)
 
-            label.fill_(fake_label)
-            L_errD_fake = nn.BCELoss(fd_g_image, label)
+            # label.fill_(fake_label)
+            # L_errD_fake = nn.BCELoss(fd_g_image, label)
 
-            with torch.no_grad():
+            # with torch.no_grad():
                 # make sure other loss all use original python type!
-                LD_loss = L_errD_fake.item() + L_errD_real.item()
+                # LD_loss = L_errD_fake.sum().item() + L_errD_real.sum().item()
 
             # backward
             IC_optimizer.zero_grad()
