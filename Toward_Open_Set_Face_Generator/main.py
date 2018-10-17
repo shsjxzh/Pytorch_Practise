@@ -133,7 +133,7 @@ def main():
         G = nn.DataParallel(G, device_ids=DeviceID).to(device)
     G_optimizer = torch.optim.Adam(G.parameters(), lr=G_LR)
 
-    # from Discriminator import Discriminator
+    from Discriminator import Discriminator
     D = Discriminator()
     # D = my_vgg19_b()
     if USE_GPU:
@@ -196,7 +196,9 @@ def main():
             label.fill_(fake_label)
             L_errD_fake = nn.BCELoss(fd_g_image, label)
 
-            LD_loss = L_errD_fake + L_errD_real
+            with torch.no_grad():
+                # make sure other loss all use original python type!
+                LD_loss = L_errD_fake.item() + L_errD_real.item()
 
             # backward
             IC_optimizer.zero_grad()
