@@ -68,6 +68,18 @@ b = torch.ones(3, 3) * 4
 
 print(((a - b) ** 2).sum())
 '''
-
+'''
 a = torch.ones(4,2) * 2
 print(a.get_device())
+'''
+
+import torch.nn as nn
+# x = torch.ones(1,3)
+# print(x.size(1))
+
+m = nn.Sigmoid()
+loss = nn.BCELoss()
+input = torch.randn(3, requires_grad=True)
+target = torch.empty(3).random_(2)
+output = loss(m(input), target)
+output.backward()
