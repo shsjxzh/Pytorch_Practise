@@ -36,9 +36,38 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 8 x 8
+            nn.Conv2d(ndf * 8, ndf * 8, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ndf * 8),
+            nn.LeakyReLU(0.2, inplace=True)
+            # state size. (ndf*8) x 4 x 4
+        )
+        self.classifier = nn.Sequential(
+            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            # nn.Sigmoid()
+        )
+        '''
+        self.feature = nn.Sequential(
+            # input is (nc) x 128 x 128
+            nn.Conv2d(nc, ndf, 3, 1, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf) x 64 x 64
+            nn.Conv2d(ndf, ndf * 2, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(ndf * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*2) x 32 x 32
+            nn.Conv2d(ndf * 2, ndf * 4, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(ndf * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*4) x 16 x 16
+            nn.Conv2d(ndf * 4, ndf * 8, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(ndf * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*8) x 8 x 8
             nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False)
             # nn.Sigmoid()
         )
+        '''
+        '''
         self.classifier = nn.Sequential(
             nn.Linear(input_size, hidden_node),
             nn.ReLU(True),
@@ -49,6 +78,7 @@ class Discriminator(nn.Module):
             nn.Linear(hidden_node // 2, 1),
             nn.Sigmoid()
         )
+        '''
 
         # the last fully connected layer must be extracted!!
 
@@ -60,7 +90,7 @@ class Discriminator(nn.Module):
             output = self.main(input)
         '''
         feature = self.feature(input)
+        result = self.classifier(feature).squeeze()
         feature = feature.view(feature.size(0), -1)
         # print(feature.size())
-        result = self.classifier(feature)
         return result, feature

@@ -12,7 +12,7 @@ from torchvision import datasets, transforms
 # Hyper Parameters
 EPOCH = 50                     # the training times
 BATCH_SIZE = 2                 # not use all data to train
-SHOW_STEP = 100                 # show the result after how many steps
+SHOW_STEP = 100                # show the result after how many steps
 CHANGE_EPOCH = 5
 USE_GPU = False
 
@@ -67,24 +67,6 @@ class Generator(nn.Module):
         output = self.main(input)
         return output
 
-
-
-def train(model, device, train_loader, optimizer, criterion, epoch):
-    model.train()
-    running_loss = 0.0
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = model(data)
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-        if batch_idx % SHOW_STEP == SHOW_STEP - 1:
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, batch_idx + 1, running_loss / SHOW_STEP))
-            running_loss = 0.0
-
 def adjust_learning_rate(LR, optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = LR * (0.1 ** (epoch // CHANGE_EPOCH))
@@ -105,9 +87,12 @@ def main():
                               root_dir='img_align_celeba',
                               transform=mytransform)
 
-    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True,num_workers=2 )#) #,  
+    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True)#) #,num_workers=2   
 
-    device = torch.device("cuda:" + str(DeviceID[0]))
+    if USE_GPU:
+        device = torch.device("cuda:" + str(DeviceID[0]))
+    else:
+        device = torch.device("cpu")
 
     from my_vgg19_b import my_vgg19_b
     # since I and C are the same, we only use one net
@@ -137,7 +122,10 @@ def main():
     if USE_GPU:
         D = nn.DataParallel(D, device_ids=DeviceID).to(device)
     D_optimizer = torch.optim.Adam(D.parameters(), lr=D_LR)
-
+    
+    # training
+    fake_label = torch.full((BATCH_SIZE,), 0, device=device)
+    
     for epoch in range(EPOCH):
         if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
             adjust_learning_rate(IC_LR, IC_optimizer, epoch)
@@ -146,6 +134,7 @@ def main():
             adjust_learning_rate(D_LR, D_optimizer, epoch)
         # train
         r = 0
+        running_loss = 0
         for batch_idx, (subject, identity) in enumerate(train_loader):
             if USE_GPU:   
                 subject, identity = subject.to(device), identity.to(device)
@@ -157,7 +146,11 @@ def main():
 
             # LIC loss
             IC_output, IC_sub = IC(subject)
-            LIC_loss = nn.BCEWithLogitsLoss(IC_output, identity)
+            LIC_loss = nn.CrossEntropyLoss()(IC_output, identity)
+            # backward to save memory
+            IC_optimizer.zero_grad()
+            LIC_loss.backward(retain_graph = True)
+            IC_optimizer.step()
 
             # LK loss
             A_output, my_mean, log_var = A(subject)
@@ -166,11 +159,10 @@ def main():
             input_vector = torch.cat((IC_sub, A_output), 1)
             input_vector = input_vector.unsqueeze(2).unsqueeze(3)
             
-            # print(input_vector.size())
-            
+            print(input_vector.size())
             g_image = G(input_vector)
-            
-            # print(g_image.size())
+            print(g_image.size())
+            print(subject.size())
 
             # LGD loss
             prob_sub, fd_image = D(subject)             # D try to increase this
@@ -185,40 +177,30 @@ def main():
             LGC_loss = 0.5 * ((IC_atr - IC_sub)**2).sum()
 
             # LD loss
-            LD_loss = -torch.mean(torch.log(prob_sub) + torch.log(1. - prob_gen))
-
-            # real_label = 1
-            # fake_label = 0
-            
-            # label = torch.full((BATCH_SIZE,), real_label, device=device)
-            # L_errD_real = nn.BCELoss(fd_image, label)
-
-            # label.fill_(fake_label)
-            # L_errD_fake = nn.BCELoss(fd_g_image, label)
-
-            # with torch.no_grad():
-                # make sure other loss all use original python type!
-                # LD_loss = L_errD_fake + L_errD_real
-
-            # backward
-            IC_optimizer.zero_grad()
-            LIC_loss.backward()
-            IC_optimizer.step()
+            # LD_loss = -torch.mean(torch.log(prob_sub) + torch.log(1. - prob_gen))
+            LD_loss = nn.BCEWithLogitsLoss()(prob_gen, fake_label)
 
             D_optimizer.zero_grad()
             # LD loss: train in division
             # L_errD_fake.backward()
             # L_errD_real.backward()
-            LD_loss.backward()
+            LD_loss.backward(retain_graph = True)
             D_optimizer.step()
+
+            A_optimizer.zero_grad()
+            (LKL_loss + r * LGR_loss).backward(retain_graph = True)
+            A_optimizer.step()
 
             G_optimizer.zero_grad()
             (r * LGR_loss + LGD_loss + LGC_loss).backward()
             G_optimizer.step()
 
-            A_optimizer.zero_grad()
-            (LKL_loss + r * LGR_loss).backward()
-            A_optimizer.step()
+            # show the total error
+            with torch.no_grad():
+                running_loss += LIC_loss.item() + LD_loss.item() + (r * LGR_loss + LGD_loss + LGC_loss).item() + (LKL_loss + r * LGR_loss).item()
+                if batch_idx % SHOW_STEP == SHOW_STEP - 1:
+                    print('[%d, %5d] loss: %.3f' % (epoch + 1, batch_idx + 1, running_loss / SHOW_STEP))
+                    running_loss = 0.0
         # if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
           #  torch.save(model.state_dict(), 'c_params.pkl')
 
@@ -228,3 +210,19 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+# real_label = 1
+# fake_label = 0
+
+# label = torch.full((BATCH_SIZE,), real_label, device=device)
+# L_errD_real = nn.BCELoss(fd_image, label)
+
+# label.fill_(fake_label)
+# L_errD_fake = nn.BCELoss(fd_g_image, label)
+
+# with torch.no_grad():
+    # make sure other loss all use original python type!
+    # LD_loss = L_errD_fake + L_errD_real
+
