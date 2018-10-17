@@ -209,7 +209,7 @@ def main():
 
             G_optimizer.zero_grad()
             (r * LGR_loss + LGD_loss + LGC_loss).backward()
-            G_optimizer.zero_grad()
+            G_optimizer.step()
 
             A_optimizer.zero_grad()
             (LKL_loss + r * LGR_loss).backward()
