@@ -15,13 +15,9 @@ import torchvision.utils as vutils
 # ngpu = int(opt.ngpu)
 
 class Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, nc = 3, ndf = 64, input_size = 32768, hidden_node = 4096):
         super(Discriminator, self).__init__()
         # self.ngpu = ngpu
-        nc = 3
-        ndf = 64
-        input_size = 32768
-        
         # the output size must be 128 * 128!!
         self.feature = nn.Sequential(
             # input is (nc) x 128 x 128
@@ -40,17 +36,17 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 8 x 8
-            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False)
             # nn.Sigmoid()
         )
         self.classifier = nn.Sequential(
             nn.Linear(input_size, hidden_node),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(hidden_node, hidden_node / 2),
+            nn.Linear(hidden_node, hidden_node // 2),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(hidden_node / 2, 1),
+            nn.Linear(hidden_node // 2, 1),
             nn.Sigmoid()
         )
 
@@ -63,6 +59,8 @@ class Discriminator(nn.Module):
         else:
             output = self.main(input)
         '''
-        feature = self.feature(input).view(-1, 1).squeeze(1)
+        feature = self.feature(input)
+        feature = feature.view(feature.size(0), -1)
+        # print(feature.size())
         result = self.classifier(feature)
         return result, feature
