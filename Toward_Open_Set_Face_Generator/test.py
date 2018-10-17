@@ -52,7 +52,7 @@ class CelebADataset(Dataset):
         
         return sample
 
-'''
+
 a = torch.ones(3, 5)
 b = 2 * torch.ones(3, 5)
 c = torch.cat((a,b), 1)
@@ -60,7 +60,6 @@ print(c.size())
 c = c.unsqueeze(2).unsqueeze(3)
 print(c.size())
 
-'''
 d = c.mean(dim=1, keepdim=True)
 print((d*d).sum(dim = 1))
 
@@ -69,3 +68,6 @@ b = torch.ones(3, 3) * 4
 
 print(((a - b) ** 2).sum())
 '''
+
+a = torch.ones(4,2) * 2
+print(a.get_device())

@@ -134,8 +134,8 @@ def main():
     G_optimizer = torch.optim.Adam(G.parameters(), lr=G_LR)
 
     # from Discriminator import Discriminator
-    # D = Discriminator()
-    D = my_vgg19_b()
+    D = Discriminator()
+    # D = my_vgg19_b()
     if USE_GPU:
         D = nn.DataParallel(D, device_ids=DeviceID).to(device)
     D_optimizer = torch.optim.Adam(D.parameters(), lr=D_LR)
@@ -175,8 +175,8 @@ def main():
             print(g_image.size())
 
             # LGD loss
-            pred_sub, fd_image = D(subject)             # D try to increase this
-            pred_gen, fd_g_image = D(g_image)           # D try to reduce this 
+            fd_image = D(subject)             # D try to increase this
+            fd_g_image = D(g_image)           # D try to reduce this 
             LGD_loss = 0.5 * ((fd_g_image - fd_image)**2).sum()
 
             # LGR loss
@@ -191,12 +191,12 @@ def main():
             fake_label = 0
 
             label = torch.full((BATCH_SIZE,), real_label, device=device)
-            errD_real = nn.BCEWithLogitsLoss(fd_image, label)
+            L_errD_real = nn.BCELoss(fd_image, label)
 
             label.fill_(fake_label)
-            # errD_fake = nn.BCEWithLogitsLoss(fd_g_image, label)
+            L_errD_fake = nn.BCELoss(fd_g_image, label)
 
-            # LD_loss = errD_fake + errD_real
+            LD_loss = L_errD_fake + L_errD_real
 
             # backward
             IC_optimizer.zero_grad()
@@ -204,7 +204,9 @@ def main():
             IC_optimizer.step()
 
             D_optimizer.zero_grad()
-            LD_loss.backward()
+            # LD loss: train in division
+            L_errD_fake.backward()
+            L_errD_real.backward()
             D_optimizer.step()
 
             G_optimizer.zero_grad()
