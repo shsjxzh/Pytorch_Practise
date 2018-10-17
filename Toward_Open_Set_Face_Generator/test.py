@@ -79,7 +79,11 @@ import torch.nn as nn
 
 m = nn.Sigmoid()
 loss = nn.BCELoss()
+loss2 = nn.BCELoss()
 input = torch.randn(3, requires_grad=True)
 target = torch.empty(3).random_(2)
 output = loss(m(input), target)
-output.backward()
+output2 = loss2(m(input), target)
+with torch.no_grad():
+    l = output + output2
+    print(l)

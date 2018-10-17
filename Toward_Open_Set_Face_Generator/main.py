@@ -115,7 +115,6 @@ def main():
     if USE_GPU:
         IC = nn.DataParallel(IC, device_ids=DeviceID).to(device)
     IC_optimizer = torch.optim.Adam(IC.parameters(), lr=IC_LR)
-    # IC_loss_func = nn.CrossEntropyLoss()
 
     from AttributeDecoder import AttributeDecoder_19_b
     # we will consider pretrained later
@@ -123,7 +122,6 @@ def main():
     if USE_GPU:   
         A = nn.DataParallel(A, device_ids=DeviceID).to(device)
     A_optimizer = torch.optim.Adam(A.parameters(), lr=A_LR)
-    # A_loss_func = 
 
     # from my_Re_vgg19_b import my_Re_vgg19_b
     # G = my_Re_vgg19_b()
@@ -168,15 +166,15 @@ def main():
             input_vector = torch.cat((IC_sub, A_output), 1)
             input_vector = input_vector.unsqueeze(2).unsqueeze(3)
             
-            print(input_vector.size())
+            # print(input_vector.size())
             
             g_image = G(input_vector)
             
-            print(g_image.size())
+            # print(g_image.size())
 
             # LGD loss
-            fd_image = D(subject)             # D try to increase this
-            fd_g_image = D(g_image)           # D try to reduce this 
+            prob_sub, fd_image = D(subject)             # D try to increase this
+            prob_gen, fd_g_image = D(g_image)           # D try to reduce this 
             LGD_loss = 0.5 * ((fd_g_image - fd_image)**2).sum()
 
             # LGR loss
@@ -187,9 +185,11 @@ def main():
             LGC_loss = 0.5 * ((IC_atr - IC_sub)**2).sum()
 
             # LD loss
+            LD_loss = -torch.mean(torch.log(prob_sub) + torch.log(1. - prob_gen))
+
             # real_label = 1
             # fake_label = 0
-
+            
             # label = torch.full((BATCH_SIZE,), real_label, device=device)
             # L_errD_real = nn.BCELoss(fd_image, label)
 
@@ -198,7 +198,7 @@ def main():
 
             # with torch.no_grad():
                 # make sure other loss all use original python type!
-                # LD_loss = L_errD_fake.sum().item() + L_errD_real.sum().item()
+                # LD_loss = L_errD_fake + L_errD_real
 
             # backward
             IC_optimizer.zero_grad()
@@ -207,8 +207,9 @@ def main():
 
             D_optimizer.zero_grad()
             # LD loss: train in division
-            L_errD_fake.backward()
-            L_errD_real.backward()
+            # L_errD_fake.backward()
+            # L_errD_real.backward()
+            LD_loss.backward()
             D_optimizer.step()
 
             G_optimizer.zero_grad()

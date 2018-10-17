@@ -20,8 +20,10 @@ class Discriminator(nn.Module):
         # self.ngpu = ngpu
         nc = 3
         ndf = 64
+        input_size = 32768
+        
         # the output size must be 128 * 128!!
-        self.main = nn.Sequential(
+        self.feature = nn.Sequential(
             # input is (nc) x 128 x 128
             nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
@@ -39,6 +41,16 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 8 x 8
             nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            # nn.Sigmoid()
+        )
+        self.classifier = nn.Sequential(
+            nn.Linear(input_size, hidden_node),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node, hidden_node / 2),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node / 2, 1),
             nn.Sigmoid()
         )
 
@@ -51,5 +63,6 @@ class Discriminator(nn.Module):
         else:
             output = self.main(input)
         '''
-        output = self.main(input)
-        return output.view(-1, 1).squeeze(1)
+        feature = self.feature(input).view(-1, 1).squeeze(1)
+        result = self.classifier(feature)
+        return result, feature
