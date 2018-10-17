@@ -9,7 +9,7 @@ class my_Re_vgg(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
-        # x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)
         return x
 
 def make_layers(cfg):
@@ -17,16 +17,18 @@ def make_layers(cfg):
     in_channels = 512 * 4 * 4 * 2
     for v in reversed(cfg):
         if v == 'M':
-            pass
             # try not to add upsample layer. It will be added after fix other bugs
-            # layers += [nn.Upsample(scale_factor=2, mode='nearest')]   # there exist other mode, may be 'bilinear' is more suitable
+            layers += [nn.Upsample(scale_factor=2)]   #, mode='nearest' there exist other mode, may be 'bilinear' is more suitable
+            # layers += [nn.MaxUnpool2d(2, stride=2)]
         else:
-            if in_channels == 512 * 4 * 4 * 2:
-                now_pad = 0
-            else:
-                now_pad = 1
-            convt2d = nn.ConvTranspose2d(in_channels, v, kernel_size=3, padding=now_pad)
-            layers += [convt2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+            # if in_channels == 512 * 4 * 4 * 2:
+              #  now_pad = 0
+            # else:
+              #  now_pad = 1
+            # in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=True, dilation=1
+            now_pad = 1
+            convt2d = nn.ConvTranspose2d(in_channels, v, kernel_size=3, padding=now_pad, bias=False)
+            layers += [ nn.BatchNorm2d(v), convt2d] # , nn.ReLU(inplace=True)
             in_channels = v
 
     return nn.Sequential(*layers)

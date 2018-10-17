@@ -42,6 +42,8 @@ class Discriminator(nn.Module):
             # nn.Sigmoid()
         )
 
+        # the last fully connected layer must be extracted!!
+
     def forward(self, input):
         '''
         if input.is_cuda and self.ngpu > 1:
