@@ -7,6 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
+import torchvision.models as models
+import torch.nn as nn
+
 '''
 data = pd.read_table('celeba_label/identity_CelebA.txt', header=None, delim_whitespace=True)
 
@@ -71,7 +74,7 @@ print(((a - b) ** 2).sum())
 '''
 a = torch.ones(4,2) * 2
 print(a.get_device())
-'''
+
 
 import torch.nn as nn
 # x = torch.ones(1,3)
@@ -86,4 +89,27 @@ output = loss(m(input), target)
 output2 = loss2(m(input), target)
 with torch.no_grad():
     l = output + output2
-    print(l)
+    print(l)'''
+
+class Classifier(models.vgg19_bn(pretrained=True).features):
+    def __init__(self, num_classes=10177, pic_size=512 * 4 * 4, hidden_node=4096):
+        super(Classifier, self).__init__()
+        self.classifier = nn.Sequential(
+            nn.Linear(pic_size, hidden_node),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node, hidden_node),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node, num_classes)
+        )
+    
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        output = self.classifier(x)
+        return output, x
+    
+    
+    
+IC = Classifier()

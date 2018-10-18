@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 import torch.utils.data as Data 
 import torchvision # this is the database of torch
+import torchvision.models as models
+
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
 
@@ -29,13 +31,11 @@ pic_after_MaxPool = 512 * 4 * 4
 ImageSize = 128
 DeviceID = [0]
 
-# test code
+# tmp generator
 class Generator(nn.Module):
-    def __init__(self):
+    def __init__(self, nz = 512 * 4 * 4 * 2, ngf = 64, nc = 3):
         super(Generator, self).__init__()
-        nz = 512 * 4 * 4 * 2
-        ngf = 64
-        nc = 3
+        
         self.main = nn.Sequential(
             # input is Z, going into a convolution
             nn.ConvTranspose2d(     nz, ngf * 8, 4, 1, 0, bias=False),
@@ -67,6 +67,29 @@ class Generator(nn.Module):
         output = self.main(input)
         return output
 
+
+# tmp classifier
+class Classifier(nn.Module):
+    def __init__(self, num_classes=10177, pic_size=512 * 4 * 4, hidden_node=4096):
+        super(Classifier, self).__init__()
+        self.features = models.vgg19_bn(pretrained=True).features
+        self.classifier = nn.Sequential(
+            nn.Linear(pic_size, hidden_node),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node, hidden_node),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(hidden_node, num_classes)
+        )
+    
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        output = self.classifier(x)
+        return output, x
+
+
 def adjust_learning_rate(LR, optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = LR * (0.1 ** (epoch // CHANGE_EPOCH))
@@ -94,9 +117,10 @@ def main():
     else:
         device = torch.device("cpu")
 
-    from my_vgg19_b import my_vgg19_b
+    # from my_vgg19_b import my_vgg19_b
     # since I and C are the same, we only use one net
-    IC = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=True)
+    # IC = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=True)
+    IC = Classifier()
     if USE_GPU:
         IC = nn.DataParallel(IC, device_ids=DeviceID).to(device)
     IC_optimizer = torch.optim.Adam(IC.parameters(), lr=IC_LR)
@@ -118,7 +142,6 @@ def main():
 
     from Discriminator import Discriminator
     D = Discriminator()
-    # D = my_vgg19_b()
     if USE_GPU:
         D = nn.DataParallel(D, device_ids=DeviceID).to(device)
     D_optimizer = torch.optim.Adam(D.parameters(), lr=D_LR)
