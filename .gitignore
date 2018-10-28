@@ -8,14 +8,17 @@ mnist/
 VGG_example/run.sh
 VGG_example/valprep.sh
 venv/
-xuzihao@202.120.38.232
 Toward_Open_Set_Face_Generator/c_params.pkl
 Toward_Open_Set_Face_Generator/celeba_label/README.txt
 Toward_Open_Set_Face_Generator/celeba_label/identity_CelebA.txt
 test.png
 gan-test.gif
-Face_identity_preserve/data/
+Face_identity_preserve/
+
+Toward_Open_Set_Face_Generator/replication2
 
 tmp.py
 params.pkl
 Toward_Open_Set_Face_Generator/lfw-align-128
+Toward_Open_Set_Face_Generator/backup/c_params.pkl
+VAE_example/vae_img/

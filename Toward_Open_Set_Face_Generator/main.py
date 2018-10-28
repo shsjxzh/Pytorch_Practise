@@ -18,10 +18,10 @@ SHOW_STEP = 100                # show the result after how many steps
 CHANGE_EPOCH = 5
 USE_GPU = False
 
-IC_LR = 0.001
-A_LR = 0.001
-G_LR = 0.001
-D_LR = 0.001
+IC_LR = 0.0001
+A_LR = 0.0001
+G_LR = 0.0001
+D_LR = 0.0001
 
 # Data Describe
 num_people = 10177
@@ -29,66 +29,8 @@ pic_after_MaxPool = 512 * 4 * 4
 
 # other parameters
 ImageSize = 128
+VectorLength = 4096
 DeviceID = [0]
-
-# tmp generator
-class Generator(nn.Module):
-    def __init__(self, nz = 512 * 4 * 4 * 2, ngf = 64, nc = 3):
-        super(Generator, self).__init__()
-        
-        self.main = nn.Sequential(
-            # input is Z, going into a convolution
-            nn.ConvTranspose2d(     nz, ngf * 8, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(ngf * 8),
-            nn.ReLU(True),
-            # state size. (ngf*8) x 4 x 4
-            nn.ConvTranspose2d(ngf * 8, ngf * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 8),
-            nn.ReLU(True),
-            # state size. (ngf*4) x 8 x 8
-            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 4),
-            nn.ReLU(True),
-            # state size. (ngf*2) x 16 x 16
-            nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 2),
-            nn.ReLU(True),
-            # state size. (ngf) x 32 x 32
-            nn.ConvTranspose2d(ngf * 2,     ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf),
-            nn.ReLU(True),
-            # state size. (ngf) x 64 x 64
-            nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1, bias=False),
-            nn.Tanh()
-            # state size. (nc) x 128 x 128
-        )
-
-    def forward(self, input):
-        output = self.main(input)
-        return output
-
-
-# tmp classifier
-class Classifier(nn.Module):
-    def __init__(self, num_classes=10177, pic_size=512 * 4 * 4, hidden_node=4096):
-        super(Classifier, self).__init__()
-        self.features = models.vgg19_bn(pretrained=True).features
-        self.classifier = nn.Sequential(
-            nn.Linear(pic_size, hidden_node),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(hidden_node, hidden_node),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(hidden_node, num_classes)
-        )
-    
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        output = self.classifier(x)
-        return output, x
-
 
 def adjust_learning_rate(LR, optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -120,22 +62,23 @@ def main():
     # from my_vgg19_b import my_vgg19_b
     # since I and C are the same, we only use one net
     # IC = my_vgg19_b(num_classes=num_people, pic_size=pic_after_MaxPool, pretrained=True)
-    IC = Classifier()
+    from Classifier import Classifier
+    IC = Classifier(num_classes=num_people, vector_length=VectorLength)
     if USE_GPU:
         IC = nn.DataParallel(IC, device_ids=DeviceID).to(device)
     IC_optimizer = torch.optim.Adam(IC.parameters(), lr=IC_LR)
 
-    from AttributeDecoder import AttributeDecoder_19_b
     # we will consider pretrained later
-    A = AttributeDecoder_19_b(size_after_max_pool=pic_after_MaxPool, use_gpu=USE_GPU)# , pretrained=True)
+    from AttributeDecoder import AttributeDecoder
+    A = AttributeDecoder(use_gpu=USE_GPU, vector_length=VectorLength)# , pretrained=True)
     if USE_GPU:   
         A = nn.DataParallel(A, device_ids=DeviceID).to(device)
     A_optimizer = torch.optim.Adam(A.parameters(), lr=A_LR)
 
     # from my_Re_vgg19_b import my_Re_vgg19_b
     # G = my_Re_vgg19_b()
-    # test code
-    G = Generator()
+    from Generator import Generator
+    G = Generator(input_size=VectorLength * 2)
     if USE_GPU:
         G = nn.DataParallel(G, device_ids=DeviceID).to(device)
     G_optimizer = torch.optim.Adam(G.parameters(), lr=G_LR)
@@ -168,8 +111,8 @@ def main():
                 r = 0.1
 
             # LIC loss
-            IC_output, IC_sub = IC(subject)
-            LIC_loss = nn.CrossEntropyLoss()(IC_output, identity)
+            IC_result, IC_sub = IC(subject)
+            LIC_loss = nn.CrossEntropyLoss()(IC_result, identity)
             # backward to save memory
             IC_optimizer.zero_grad()
             LIC_loss.backward(retain_graph = True)

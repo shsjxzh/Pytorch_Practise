@@ -1,22 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.models as models
 
 class AttributeDecoder(nn.Module):
     # pic_size need to be caculated carefully
-    def __init__(self, use_gpu=True, size_after_max_pool=512 * 4 * 4, vector_length=4096):
+    def __init__(self, features, use_gpu=True, size_after_max_pool=512 * 4 * 4):
         super(AttributeDecoder, self).__init__()
-        self.features = models.vgg19_bn(pretrained=True).features
+        self.features = features
         self.use_gpu = use_gpu
         self.log_var = nn.Sequential(
-            nn.Linear(size_after_max_pool, vector_length)
-        )
-        self.my_mean = nn.Sequential(
-            nn.Linear(size_after_max_pool, vector_length)
-        )
-        '''
-        self.log_var = nn.Sequential(
             nn.Linear(size_after_max_pool, size_after_max_pool),
             nn.ReLU(),
             nn.Linear(size_after_max_pool, size_after_max_pool),
@@ -30,7 +22,6 @@ class AttributeDecoder(nn.Module):
             nn.ReLU(),
             nn.Linear(size_after_max_pool, size_after_max_pool)
         )
-        '''
     def encode(self, x):
         x = self.features(x)
         x = x.view(x.size(0), -1)
@@ -54,7 +45,6 @@ class AttributeDecoder(nn.Module):
         z = self.reparameterize(my_mean, log_var)
         return z, my_mean, log_var
 
-'''
 def make_layers(cfg):
     layers = []
     in_channels = 3
@@ -75,4 +65,3 @@ def AttributeDecoder_19_b(**kwargs):
     return model
 
 # print(AttributeDecoder19_b())
-'''
