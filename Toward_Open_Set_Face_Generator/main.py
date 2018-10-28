@@ -29,7 +29,9 @@ num_people = 10177
 pic_after_MaxPool = 512 * 4 * 4
 
 # other parameters
-ImageSize = 128
+# be care about the image size !!
+# ImageSize = 128
+ImageSize = 224
 VectorLength = 4096
 DeviceID = [0]                  # CHANGE THIS ON GPU!!
 
