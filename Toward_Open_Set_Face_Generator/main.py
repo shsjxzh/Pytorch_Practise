@@ -9,6 +9,7 @@ import torchvision # this is the database of torch
 import torchvision.models as models
 
 import matplotlib.pyplot as plt
+import numpy as np
 from torchvision import datasets, transforms
 
 # Hyper Parameters
@@ -16,7 +17,7 @@ EPOCH = 50                     # the training times
 BATCH_SIZE = 2                 # not use all data to train
 SHOW_STEP = 100                # show the result after how many steps
 CHANGE_EPOCH = 5
-USE_GPU = False
+USE_GPU = False                # CHANGE THIS ON GPU!!
 
 IC_LR = 0.0001
 A_LR = 0.0001
@@ -30,7 +31,21 @@ pic_after_MaxPool = 512 * 4 * 4
 # other parameters
 ImageSize = 128
 VectorLength = 4096
-DeviceID = [0]
+DeviceID = [0]                  # CHANGE THIS ON GPU!!
+
+# This will only be used on CPU!!
+def imshow(inp, title=None):
+    """Imshow for Tensor."""
+    inp = inp.numpy().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    plt.imshow(inp)
+    if title is not None:
+        plt.title(title)
+    plt.pause(0.001)  # pause a bit so that plots are updated
+
 
 def adjust_learning_rate(LR, optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -52,7 +67,8 @@ def main():
                               root_dir='img_align_celeba',
                               transform=mytransform)
 
-    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True)#) #,num_workers=2   
+    # CHANGE THIS ON GPU!!
+    train_loader = Data.DataLoader(dataset=face_data, batch_size=BATCH_SIZE, shuffle=True) #,num_workers=2)   
 
     if USE_GPU:
         device = torch.device("cuda:" + str(DeviceID[0]))

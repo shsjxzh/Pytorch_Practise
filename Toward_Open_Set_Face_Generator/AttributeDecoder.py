@@ -7,13 +7,19 @@ class AttributeDecoder(nn.Module):
     # pic_size need to be caculated carefully
     def __init__(self, use_gpu=True, size_after_max_pool=512 * 4 * 4, vector_length=4096):
         super(AttributeDecoder, self).__init__()
-        self.features = models.vgg19_bn(pretrained=True).features
         self.use_gpu = use_gpu
+        self.features = models.vgg19_bn(pretrained=True).features
+        # self.features = models.resnet18(pretrained=True)
+        # num_ftrs = self.features.fc.in_features
+        # self.features.fc = nn.Linear(num_ftrs, vector_length)
+
         self.log_var = nn.Sequential(
             nn.Linear(size_after_max_pool, vector_length)
+            # nn.Linear(vector_length, vector_length)
         )
         self.my_mean = nn.Sequential(
             nn.Linear(size_after_max_pool, vector_length)
+            # nn.Linear(vector_length, vector_length)
         )
         '''
         self.log_var = nn.Sequential(
