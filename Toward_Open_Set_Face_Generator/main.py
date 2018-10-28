@@ -36,7 +36,7 @@ DeviceID = [0]                  # CHANGE THIS ON GPU!!
 # This will only be used on CPU!!
 def imshow(inp, title=None):
     """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
+    inp = np.transpose(inp.detach().numpy(), (1, 2, 0))
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     inp = std * inp + mean
@@ -145,6 +145,9 @@ def main():
             g_image = G(input_vector)
             print(g_image.size())
             print(subject.size())
+
+            if not USE_GPU:
+                imshow(torchvision.utils.make_grid(g_image))
 
             # LGD loss
             prob_sub, fd_image = D(subject)             # D try to increase this
