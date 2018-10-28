@@ -15,10 +15,11 @@ import numpy as np
 from torchvision import datasets, transforms
 
 # Hyper Parameters
-EPOCH = 50                     # the training times
+EPOCH = 100                    # the training times
 BATCH_SIZE = 2                 # not use all data to train
 SHOW_STEP = 100                # show the result after how many steps
-CHANGE_EPOCH = 10
+CHANGE_EPOCH = 30
+SAVE_EPOCH = 10
 USE_GPU = False                # CHANGE THIS ON GPU!!
 
 IC_LR = 0.0001
@@ -204,7 +205,7 @@ def main():
         
         # if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
           #  torch.save(model.state_dict(), 'c_params.pkl')
-        if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
+        if epoch % SAVE_EPOCH == CHANGE_EPOCH - 1:
             save = torchvision.utils.make_grid(g_image)
             save_img(save, './img/g_image_{}.png'.format(epoch + 1))
             save = torchvision.utils.make_grid(subject)
