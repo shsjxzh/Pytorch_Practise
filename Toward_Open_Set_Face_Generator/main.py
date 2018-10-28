@@ -9,6 +9,8 @@ import torchvision # this is the database of torch
 import torchvision.models as models
 
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
 import numpy as np
 from torchvision import datasets, transforms
 
@@ -16,7 +18,7 @@ from torchvision import datasets, transforms
 EPOCH = 50                     # the training times
 BATCH_SIZE = 2                 # not use all data to train
 SHOW_STEP = 100                # show the result after how many steps
-CHANGE_EPOCH = 5
+CHANGE_EPOCH = 10
 USE_GPU = False                # CHANGE THIS ON GPU!!
 
 IC_LR = 0.0001
@@ -47,6 +49,14 @@ def imshow(inp, title=None):
     if title is not None:
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
+
+def save_img(inp, filename):
+    inp = np.transpose(inp.detach().numpy(), (1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    mpimg.imsave(filename, inp)
 
 
 def adjust_learning_rate(LR, optimizer, epoch):
@@ -116,9 +126,11 @@ def main():
             adjust_learning_rate(A_LR, A_optimizer, epoch)
             adjust_learning_rate(G_LR, G_optimizer, epoch)
             adjust_learning_rate(D_LR, D_optimizer, epoch)
+
         # train
         r = 0
         running_loss = 0
+        attribute = 0
         for batch_idx, (subject, identity) in enumerate(train_loader):
             if USE_GPU:   
                 subject, identity = subject.to(device), identity.to(device)
@@ -137,7 +149,7 @@ def main():
             IC_optimizer.step()
 
             # LK loss
-            A_output, my_mean, log_var = A(subject)
+            A_output, my_mean, log_var = A(attribute)
             LKL_loss = 0.5 * (my_mean.pow(2) + log_var.exp() - log_var - 1).sum()
 
             input_vector = torch.cat((IC_sub, A_output), 1)
@@ -149,7 +161,7 @@ def main():
             print(subject.size())
 
             if not USE_GPU:
-                imshow(torchvision.utils.make_grid(g_image))
+                imshow(torchvision.utils.make_grid(attribute))
 
             # LGD loss
             prob_sub, fd_image = D(subject)             # D try to increase this
@@ -188,8 +200,18 @@ def main():
                 if batch_idx % SHOW_STEP == SHOW_STEP - 1:
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, batch_idx + 1, running_loss / SHOW_STEP))
                     running_loss = 0.0
+        
+        
         # if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
           #  torch.save(model.state_dict(), 'c_params.pkl')
+        if epoch % CHANGE_EPOCH == CHANGE_EPOCH - 1:
+            save = torchvision.utils.make_grid(g_image)
+            save_img(save, './img/g_image_{}.png'.format(epoch + 1))
+            save = torchvision.utils.make_grid(subject)
+            save_img(save, './img/identity_{}.png'.format(epoch + 1))
+            save = torchvision.utils.make_grid(attribute)
+            save_img(save, './img/attribute_{}.png'.format(epoch + 1))
+
 
     print('Finished Training')
     # torch.save(model.state_dict(), 'c_params.pkl')
