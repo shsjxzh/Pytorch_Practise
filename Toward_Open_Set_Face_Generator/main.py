@@ -20,7 +20,7 @@ BATCH_SIZE = 2                 # not use all data to train
 SHOW_STEP = 100                # show the result after how many steps
 CHANGE_EPOCH = 30
 SAVE_EPOCH = 10
-USE_GPU = False                # CHANGE THIS ON GPU!!
+USE_GPU = True                # CHANGE THIS ON GPU!!
 
 IC_LR = 0.0001
 A_LR = 0.0001
@@ -156,13 +156,13 @@ def main():
             input_vector = torch.cat((IC_sub, A_output), 1)
             input_vector = input_vector.unsqueeze(2).unsqueeze(3)
             
-            print(input_vector.size())
+            # print(input_vector.size())
             g_image = G(input_vector)
-            print(g_image.size())
-            print(subject.size())
+            # print(g_image.size())
+            # print(subject.size())
 
-            if not USE_GPU:
-                imshow(torchvision.utils.make_grid(attribute))
+            # if not USE_GPU:
+              # imshow(torchvision.utils.make_grid(attribute))
 
             # LGD loss
             prob_sub, fd_image = D(subject)             # D try to increase this
