@@ -22,3 +22,10 @@ params.pkl
 Toward_Open_Set_Face_Generator/lfw-align-128
 Toward_Open_Set_Face_Generator/backup/c_params.pkl
 VAE_example/vae_img/
+VAE_example/vae_params.pkl
+VAE_example/vae_params2.pkl
+VAE_example/vae_params_unuse.pkl
+VAE_example/vae_rand/
+VAE_example/vae_img_2/
+Toward_Open_Set_Face_Generator/img/
+MNIST_Test/image_8_3939/
